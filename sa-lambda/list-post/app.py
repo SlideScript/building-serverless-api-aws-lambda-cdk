@@ -7,18 +7,21 @@ import boto3
 import os
 
 
-def list_data(data):
+def list_data():
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.getenv("DYNAMODB_TABLE"))
     response = table.scan()
-    return response['Item']
+    posts = []
+    for item in response['Items']:
+        post = {"ID": item["ID"], "title": item["title"]}
+        posts.append(post)
+    return posts
 
 
 def lambda_handler(event, context):
     try:
-        request_data = json.loads(event['body'])
-        post = list_data(request_data)
-        return {"statusCode": 200, "body": json.dumps(post)}
+        posts = list_data()
+        return {"statusCode": 200, "body": json.dumps(posts)}
     except Exception as e:
         print(e)
-        return {"statusCode": 500, "body": json.dumps("{}")}
+        return {"statusCode": 500, "body": json.dumps({})}

@@ -7,22 +7,25 @@ import boto3
 import os
 
 
-def get_data(data):
+def get_data(post_ID):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.getenv("DYNAMODB_TABLE"))
-    response = table.get_item(
-        Key={
-            'ID': data['id']
-        }
-    )
-    return response['Item']
+    response = table.get_item(Key={'ID': post_ID})
+    if "Item" in response:
+        if response['Item']:
+            return response['Item']
+    else:
+        return {}
 
 
 def lambda_handler(event, context):
     try:
-        request_data = json.loads(event['body'])
-        post = get_data(request_data)
-        return {"statusCode": 200, "body": json.dumps(post)}
+        post_ID = event['pathParameters']['id']
+        post = get_data(post_ID)
+        if post:
+            return {"statusCode": 200, "body": json.dumps(post)}
+        else:
+            return {"statusCode": 404, "body": json.dumps(post)}
     except Exception as e:
         print(e)
-        return {"statusCode": 500, "body": json.dumps("{}")}
+        return {"statusCode": 500, "body": json.dumps({})}

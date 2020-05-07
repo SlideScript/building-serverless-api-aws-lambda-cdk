@@ -19,12 +19,13 @@ class SaCdkStack(core.Stack):
         # Permissions
         lambda_role = _iam.Role(
             self,
-            id='sa-orderservice-role',
+            id='sa-cms-role',
             assumed_by=_iam.ServicePrincipal('lambda.amazonaws.com'))
 
-        # lambda_role.add_managed_policy(
-            # _iam.ManagedPolicy.from_aws_managed_policy_name(
-                # 'AWSLambdaBasicExecutionRole'))
+        # WARNING: This is an example on how to include AWS managed policy. Don't use this for production. Please use the example of policy document for DynamoDB instead.
+        lambda_role.add_managed_policy(
+            _iam.ManagedPolicy.from_aws_managed_policy_name(
+                'CloudWatchLogsFullAccess'))
 
         policy_statement = _iam.PolicyStatement(effect=_iam.Effect.ALLOW)
         policy_statement.add_actions("dynamodb:*")
@@ -39,6 +40,7 @@ class SaCdkStack(core.Stack):
             handler="app.lambda_handler",
             tracing=_lambda.Tracing.ACTIVE,
             timeout=core.Duration.seconds(30),
+            role=lambda_role,
             runtime=_lambda.Runtime.PYTHON_3_8)
 
         fn_lambda_list_post = _lambda.Function(
@@ -48,6 +50,7 @@ class SaCdkStack(core.Stack):
             handler="app.lambda_handler",
             tracing=_lambda.Tracing.ACTIVE,
             timeout=core.Duration.seconds(30),
+            role=lambda_role,
             runtime=_lambda.Runtime.PYTHON_3_8)
 
         fn_lambda_get_post = _lambda.Function(
@@ -57,6 +60,7 @@ class SaCdkStack(core.Stack):
             handler="app.lambda_handler",
             tracing=_lambda.Tracing.ACTIVE,
             timeout=core.Duration.seconds(30),
+            role=lambda_role,
             runtime=_lambda.Runtime.PYTHON_3_8)
 
         fn_lambda_delete_post = _lambda.Function(
